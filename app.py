@@ -1,21 +1,23 @@
+from dotenv import load_dotenv
 from flask import Flask, jsonify
 import requests
 import os
 
 app = Flask(__name__)
+load_dotenv()
 
 # SerpAPI base URL and API key
 SERP_API_URL = "https://serpapi.com/search.json"
 SERP_API_KEY = os.getenv("SPORTS_API_KEY")
 
 @app.route('/sports', methods=['GET'])
-def get_nfl_schedule():
+def get_unrivaled_schedule():
     #Fetches the NFL schedule from SerpAPI and returns it as JSON
     try:
         # Query SerpAPI
         params = {
             "engine": "google",
-            "q": "nfl schedule",
+            "q": "unrivaled schedule",
             "api_key": SERP_API_KEY
         }
         response = requests.get(SERP_API_URL, params=params)
@@ -25,7 +27,7 @@ def get_nfl_schedule():
         # Extract games from sports_results
         games = data.get("sports_results", {}).get("games", [])
         if not games:
-            return jsonify({"message": "No NFL schedule available.", "games": []}), 200
+            return jsonify({"message": "No WNBA schedule available.", "games": []}), 200
 
         # Format the schedule into JSON
         formatted_games = []
@@ -38,15 +40,15 @@ def get_nfl_schedule():
                 away_team, home_team = "Unknown", "Unknown"
 
             game_info = {
-                "away_team": away_team,
-                "home_team": home_team,
-                "venue": game.get("venue", "Unknown"),
-                "date": game.get("date", "Unknown"),
-                "time": f"{game.get('time', 'Unknown')} ET" if game.get("time", "Unknown") != "Unknown" else "Unknown"
+                "Away Team": away_team,
+                "Home Team": home_team,
+                "Venue": game.get("venue", "Unknown"),
+                "Date": game.get("date", "Unknown"),
+                "Time": f"{game.get('time', 'Unknown')} ET" if game.get("time", "Unknown") != "Unknown" else "Unknown"
             }
             formatted_games.append(game_info)
 
-        return jsonify({"message": "NFL schedule fetched successfully.", "games": formatted_games}), 200
+        return jsonify({"message": "WNBA schedule fetched successfully.", "games": formatted_games}), 200
     
     except Exception as e:
         return jsonify({"message": "An error occurred.", "error": str(e)}), 500
