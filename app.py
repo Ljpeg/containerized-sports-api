@@ -11,8 +11,8 @@ SERP_API_URL = "https://serpapi.com/search.json"
 SERP_API_KEY = os.getenv("SPORTS_API_KEY")
 
 @app.route('/sports', methods=['GET'])
-def get_unrivaled_schedule():
-    #Fetches the NFL schedule from SerpAPI and returns it as JSON
+def get_WNBA_schedule():
+    #Fetches the WNBA schedule from SerpAPI and returns it as JSON
     try:
         # Query SerpAPI
         params = {
