@@ -15,7 +15,7 @@ HEALTH_CHECK_PATH = "/sports"
 IMAGE_TAG = "sports-api-latest"
 EXECUTION_ROLE_ARN = "arn:aws:iam::443370693600:role/ecsTaskExecutionRole"
 SUBNETS = ["subnet-023863d2535821480",
-           "subnet-0eeb018c552f1801c", "subnet-072732b43c768c4fb"]
+          "subnet-0eeb018c552f1801c", "subnet-072732b43c768c4fb"]
 
 ecr_client = boto3.client('ecr', region_name=AWS_REGION)
 ecs_client = boto3.client('ecs', region_name=AWS_REGION)
@@ -23,8 +23,6 @@ elb_client = boto3.client('elbv2', region_name=AWS_REGION)
 api_gateway_client = boto3.client('apigateway', region_name=AWS_REGION)
 
 # If it doens't exist, create ECR Repo and verify creation
-
-
 def create_ecr_repo():
     try:
         response = ecr_client.create_repository(repositoryName=ECR_REPO_NAME)
@@ -42,8 +40,6 @@ def create_ecr_repo():
         exit(1)
 
 # Log into ECR
-
-
 def login_to_ecr():
     try:
         print("Logging into ECR...")
@@ -61,8 +57,6 @@ def login_to_ecr():
         exit(1)
 
 # Build, push, and tag Docker image
-
-
 def build_and_push_docker_image(repository_uri):
     try:
         print("Building Docker image...")
@@ -83,8 +77,6 @@ def build_and_push_docker_image(repository_uri):
         exit(1)
 
 # Create ECS Cluster
-
-
 def create_ecs_cluster():
     response = ecs_client.list_clusters()
     if ECS_CLUSTER_NAME in response["clusterArns"]:
@@ -100,8 +92,6 @@ def create_ecs_cluster():
             exit(1)
 
 # Register Task Definition
-
-
 def register_task_definition(repository_uri):
     try:
         response = ecs_client.list_task_definitions(
@@ -141,8 +131,6 @@ def register_task_definition(repository_uri):
         exit(1)
 
 # Create ECS Service
-
-
 def create_ecs_service(task_definition_arn):
     services = ecs_client.list_services(
         cluster=ECS_CLUSTER_NAME)["serviceArns"]
