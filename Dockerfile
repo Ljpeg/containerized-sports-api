@@ -4,6 +4,19 @@ FROM python:3.9-slim
 RUN apt-get update && \
     apt-get install -y docker.io
 
+# Install dependencies and AWS CLI
+RUN apt-get update && apt-get install -y \
+    unzip \
+    curl \
+    && curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
+    && unzip awscliv2.zip \
+    && ./aws/install \
+    && rm -rf awscliv2.zip \
+    && rm -rf aws
+
+# Verify the installation
+RUN /usr/local/bin/aws --version
+
 # Set the working directory inside the container
 WORKDIR /app
 
