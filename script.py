@@ -14,6 +14,7 @@ TARGET_GROUP_NAME = "sports-api-tg"
 HEALTH_CHECK_PATH = "/sports"
 IMAGE_TAG = "sports-api-latest"
 EXECUTION_ROLE_ARN = "arn:aws:iam::443370693600:role/ecsTaskExecutionRole"
+SUBNETS = ["subnet-023863d2535821480", "subnet-0eeb018c552f1801c", "subnet-072732b43c768c4fb"]
 
 ecr_client = boto3.client('ecr', region_name=AWS_REGION)
 ecs_client = boto3.client('ecs', region_name=AWS_REGION)
@@ -122,6 +123,30 @@ def register_task_definition(repository_uri):
     except Exception as e:
         print(f"An error occurred during task definition registration: {str(e)}")
         exit(1)
+
+# Create ECS Service
+def create_ecs_service(task_definition_arn):
+    services = ecs_client.list_services(cluster=ECS_CLUSTER_NAME)["serviceArns"]
+    if SERVICE_NAME in services:
+        print(f'ECS Service: {SERVICE_NAME} already exists')
+        return
+    else: 
+        print("Creating ECS Service...")
+        response = ecs_client.create_service(
+            cluster=ECS_CLUSTER_NAME,
+            serviceName=SERVICE_NAME,
+            taskDefinition=task_definition_arn,
+            desiredCount=2,
+            launchType="FARGATE",
+            networkConfiguration={
+                "awsvpcConfiguration": {
+                    "subnets": SUBNETS,
+                    "assignPublicIp": "ENABLED"
+                }
+            }
+        )
+
+    
 
 
 print("Starting deployment...")
