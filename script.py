@@ -11,6 +11,7 @@ TASK_DEF_FAMILY = "sports-api-task-def"
 SERVICE_NAME = "sports-api-service"
 LOAD_BALANCER_NAME = "sports-api-lb"
 TARGET_GROUP_NAME = "sports-api-tg"
+API_GATEWAY_NAME = "sports-api-gw"
 HEALTH_CHECK_PATH = "/sports"
 IMAGE_TAG = "sports-api-latest"
 EXECUTION_ROLE_ARN = "arn:aws:iam::443370693600:role/ecsTaskExecutionRole"
@@ -120,7 +121,7 @@ def register_task_definition(repository_uri):
                                 "hostPort": 8080,
                             }
                         ],
-                        "environment": [{"name": "ENV", "value": "production"}],
+                        "environment": [{"name": "ENV", "value": "prod"}],
                     }
                 ]
             )
@@ -164,14 +165,106 @@ def create_ecs_service(task_definition_arn):
 
 # Create Load Balancer
 def create_load_balancer():
+    alb_arn = None
+    target_group_arn = None
     try: 
+        print("Creating Load Balancer...")
         response = elb_client.create_load_balancer(
             Name=LOAD_BALANCER_NAME,
+            Subnets=SUBNETS,
+            SecurityGroups=SECURITY_GROUP,
+            Scheme="internet-facing",
+            Type="application",
         )
+        alb = response["LoadBalancers"][0]
+        alb_arn = response["LoadBalancers"][0]["LoadBalancerArn"]
+        print(f"Load Balancer created successfully: {alb_arn}")
     except Exception as e:
         print(f"An error occurred during load balancer creation: {str(e)}")
         exit(1)
+    
+    try:
+        print("Creating Target Group...")
+        response = elb_client.create_target_group(
+            Name=TARGET_GROUP_NAME,
+            Protocol="HTTP",
+            Port=8080,
+            VpcId=VPC_ID,
+            HealthCheckPath=HEALTH_CHECK_PATH,
+        )
+        target_group_arn = response["TargetGroups"][0]["TargetGroupArn"]
+        print(f"Target Group created successfully: {target_group_arn}")
+    except Exception as e:
+        print(f"An error occurred during target group creation: {str(e)}")
+        exit(1)
+        
+    try:
+        print("Attaching target group to load balancer...")
+        response = elb_client.create_listener(
+            LoadBalancerArn=alb_arn,
+            Protocol="HTTP",
+            Port=80,
+            DefaultActions=[
+                {
+                    "Type": "forward",
+                    "TargetGroupArn": target_group_arn,
+                }
+            ]
+        )
+        print("Target group attached to load balancer successfully.")
+    except Exception as e:
+        print(f"An error occurred during target group attachment: {str(e)}")
+        exit(1)
+    
+    return alb["DNSName"]
 
+# Create API Gateway
+def create_api_gateway(alb_dns):
+    try:
+        print("Creating Rest API for gateway...")
+        response = api_gateway_client.create_rest_api(
+            name=API_GATEWAY_NAME
+        )
+        api_id = response["id"]
+        print(f"Rest API for gateway created successfully with api id: {api_id}")
+
+        root_id = api_gateway_client.get_resources(
+          restApiId=api_id)["items"][0]["id"]
+        print(f"Root resource id: {root_id}")
+
+        print(f"Creating resource for /sports...")
+        resource = api_gateway_client.create_resource(
+            restApiId=api_id,
+            parentId=root_id,
+            pathPart="sports"
+        )
+        resource_id = resource["id"]
+        print(f"/sports resource created successfully with id: {resource_id}")
+        print("Creating GET method for /sports...")
+        api_gateway_client.put_method(
+            restApiId=api_id,
+            resourceId=resource_id,
+            httpMethod="GET",
+            authorizationType="NONE"
+        )
+        endpoint = f"https://{alb_dns}/{HEALTH_CHECK_PATH}"
+        print(f"Creating integration for /sports with endpoint: {endpoint}")
+        api_gateway_client.put_integration(
+            restApiId=api_id,
+            resourceId=resource_id,
+            httpMethod="GET",
+            type="HTTP_PROXY",
+            integrationHttpMethod="GET",
+            uri=endpoint
+        )
+        print("Creating deployment for /sports...")
+        api_gateway_client.create_deployment(
+            restApiId=api_id,
+            stageName="prod"
+        )
+    except Exception as e:
+        print(f"An error occurred during API Gateway creation: {str(e)}")
+        exit(1)
 
 print("Starting deployment...")
 repository_uri = create_ecr_repo()
@@ -196,3 +289,11 @@ print(f"Task registered, Task Definition ARN: {task_definition_arn}")
 print("Attemtping to create ECS Service...")
 create_ecs_service(task_definition_arn)
 print("ECS Service created successfully.")
+
+print("Attempting to create load balancer...")
+load_balancer_dns = create_load_balancer()
+print(f"Load Balancer with DNS: {load_balancer_dns} successfully created")
+
+print("Attempting to create API Gateway...")
+create_api_gateway(load_balancer_dns)
+print("API Gateway created successfully.")
