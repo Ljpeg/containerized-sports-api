@@ -16,6 +16,8 @@ IMAGE_TAG = "sports-api-latest"
 EXECUTION_ROLE_ARN = "arn:aws:iam::443370693600:role/ecsTaskExecutionRole"
 SUBNETS = ["subnet-023863d2535821480",
           "subnet-0eeb018c552f1801c", "subnet-072732b43c768c4fb"]
+VPC_ID = "vpc-037608f5ddf68b438"
+SECURITY_GROUP = ["sg-006d3ebb0bac7b387"]
 
 ecr_client = boto3.client('ecr', region_name=AWS_REGION)
 ecs_client = boto3.client('ecs', region_name=AWS_REGION)
@@ -138,20 +140,37 @@ def create_ecs_service(task_definition_arn):
         print(f'ECS Service: {SERVICE_NAME} already exists')
         return
     else:
-        print("Creating ECS Service...")
-        response = ecs_client.create_service(
-            cluster=ECS_CLUSTER_NAME,
-            serviceName=SERVICE_NAME,
-            taskDefinition=task_definition_arn,
-            desiredCount=2,
-            launchType="FARGATE",
-            networkConfiguration={
-                "awsvpcConfiguration": {
-                    "subnets": SUBNETS,
-                    "assignPublicIp": "ENABLED"
+        try:
+            print("Creating ECS Service...")
+            response = ecs_client.create_service(
+                cluster=ECS_CLUSTER_NAME,
+                serviceName=SERVICE_NAME,
+                taskDefinition=task_definition_arn,
+                desiredCount=2,
+                launchType="FARGATE",
+                networkConfiguration={
+                    "awsvpcConfiguration": {
+                        "subnets": SUBNETS,
+                        "securityGroups": SECURITY_GROUP,
+                        "assignPublicIp": "ENABLED"
+                    }
                 }
-            }
+            )
+            print(f"ECS Service: {response["service"]["serviceName"]}, {response["service"]["serviceArn"]} created successfully.")
+            return response["service"]["serviceArn"]
+        except Exception as e:
+            print(f"An error occurred during service creation: {str(e)}")
+            exit(1)
+
+# Create Load Balancer
+def create_load_balancer():
+    try: 
+        response = elb_client.create_load_balancer(
+            Name=LOAD_BALANCER_NAME,
         )
+    except Exception as e:
+        print(f"An error occurred during load balancer creation: {str(e)}")
+        exit(1)
 
 
 print("Starting deployment...")
@@ -173,3 +192,7 @@ print("ECS Cluster created successfully.")
 print("Attemtping to register Task Definition...")
 task_definition_arn = register_task_definition(repository_uri)
 print(f"Task registered, Task Definition ARN: {task_definition_arn}")
+
+print("Attemtping to create ECS Service...")
+create_ecs_service(task_definition_arn)
+print("ECS Service created successfully.")
