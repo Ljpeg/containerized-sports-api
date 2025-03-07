@@ -5,20 +5,20 @@ import subprocess
 # Set Variables
 AWS_ACCOUNT_ID = "443370693600"
 AWS_REGION = "us-east-2"
-ECR_REPO_NAME = "sports-api"
-ECS_CLUSTER_NAME = "sports-api-cluster"
-TASK_DEF_FAMILY = "sports-api-task-def"
-SERVICE_NAME = "sports-api-service"
-LOAD_BALANCER_NAME = "sports-api-lb"
-TARGET_GROUP_NAME = "sports-api-tg"
-API_GATEWAY_NAME = "sports-api-gw"
+ECR_REPO_NAME = "sports-api-2"
+ECS_CLUSTER_NAME = "sports-api-cluster-2"
+TASK_DEF_FAMILY = "sports-api-task-def-2"
+SERVICE_NAME = "sports-api-service-2"
+LOAD_BALANCER_NAME = "sports-api-lb-2"
+TARGET_GROUP_NAME = "sports-api-tg-2"
+API_GATEWAY_NAME = "sports-api-gw-2"
 HEALTH_CHECK_PATH = "/sports"
-IMAGE_TAG = "sports-api-latest"
+IMAGE_TAG = "sports-api-latest-2"
 EXECUTION_ROLE_ARN = "arn:aws:iam::443370693600:role/ecsTaskExecutionRole"
 SUBNETS = ["subnet-023863d2535821480",
           "subnet-0eeb018c552f1801c", "subnet-072732b43c768c4fb"]
 VPC_ID = "vpc-037608f5ddf68b438"
-SECURITY_GROUP = ["sg-006d3ebb0bac7b387"]
+SECURITY_GROUPS = ["sg-006d3ebb0bac7b387"]
 
 ecr_client = boto3.client('ecr', region_name=AWS_REGION)
 ecs_client = boto3.client('ecs', region_name=AWS_REGION)
@@ -75,8 +75,7 @@ def build_and_push_docker_image(repository_uri):
         subprocess.run(f"docker push {tagged_image}", shell=True, check=True)
 
     except Exception as e:
-        print(
-            f"An error occurred trying to build, push, or tag Docker image: {str(e)}")
+        print(f"An error occurred trying to build, push, or tag Docker image: {str(e)}")
         exit(1)
 
 # Create ECS Cluster
@@ -152,15 +151,15 @@ def create_ecs_service(task_definition_arn):
                 networkConfiguration={
                     "awsvpcConfiguration": {
                         "subnets": SUBNETS,
-                        "securityGroups": SECURITY_GROUP,
+                        "securityGroups": SECURITY_GROUPS,
                         "assignPublicIp": "ENABLED"
                     }
                 }
             )
-            print(f"ECS Service: {response["service"]["serviceName"]}, {response["service"]["serviceArn"]} created successfully.")
+            print(f'ECS Service: {response["service"]["serviceName"]}, {response["service"]["serviceArn"]} created successfully.')
             return response["service"]["serviceArn"]
         except Exception as e:
-            print(f"An error occurred during service creation: {str(e)}")
+            print(f'An error occurred during service creation: {str(e)}')
             exit(1)
 
 # Create Load Balancer
@@ -172,7 +171,7 @@ def create_load_balancer():
         response = elb_client.create_load_balancer(
             Name=LOAD_BALANCER_NAME,
             Subnets=SUBNETS,
-            SecurityGroups=SECURITY_GROUP,
+            SecurityGroups=SECURITY_GROUPS,
             Scheme="internet-facing",
             Type="application",
         )
@@ -247,7 +246,7 @@ def create_api_gateway(alb_dns):
             httpMethod="GET",
             authorizationType="NONE"
         )
-        endpoint = f"https://{alb_dns}/{HEALTH_CHECK_PATH}"
+        endpoint = f'https://{alb_dns}{HEALTH_CHECK_PATH}'
         print(f"Creating integration for /sports with endpoint: {endpoint}")
         api_gateway_client.put_integration(
             restApiId=api_id,
