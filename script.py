@@ -1,8 +1,14 @@
 import boto3
 import subprocess
+from dotenv import load_dotenv
+import os
+import json
+
+load_dotenv()
 
 # Set Variables
-AWS_ACCOUNT_ID = "443370693600"
+
+AWS_ACCOUNT_ID = os.getenv("AWS_ACCOUNT_ID")
 AWS_REGION = "us-east-2"
 ECR_REPO_NAME = "sports-api"
 ECS_CLUSTER_NAME = "sports-api-cluster"
@@ -13,11 +19,10 @@ TARGET_GROUP_NAME = "sports-api-tg"
 API_GATEWAY_NAME = "sports-api-gw"
 HEALTH_CHECK_PATH = "/sports"
 IMAGE_TAG = "sports-api-latest"
-EXECUTION_ROLE_ARN = "arn:aws:iam::443370693600:role/ecsTaskExecutionRole"
-SUBNETS = ["subnet-023863d2535821480",
-          "subnet-0eeb018c552f1801c", "subnet-072732b43c768c4fb"]
-VPC_ID = "vpc-037608f5ddf68b438"
-SECURITY_GROUPS = ["sg-006d3ebb0bac7b387"]
+EXECUTION_ROLE_ARN = os.getenv("EXECUTION_ROLE_ARN")
+SUBNETS = json.loads(os.getenv("SUBNETS", "[]"))
+VPC_ID = os.getenv("VPC_ID")
+SECURITY_GROUPS = json.loads(os.getenv("SECURITY_GROUPS", "[]"))
 
 ecr_client = boto3.client('ecr', region_name=AWS_REGION)
 ecs_client = boto3.client('ecs', region_name=AWS_REGION)
