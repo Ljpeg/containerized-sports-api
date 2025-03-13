@@ -18,7 +18,7 @@ def get_WNBA_schedule():
         # Query SerpAPI
         params = {
             "engine": "google",
-            "q": "unrivaled schedule",
+            "q": "wnba schedule",
             "api_key": SERP_API_KEY
         }
         response = requests.get(SERP_API_URL, params=params)
