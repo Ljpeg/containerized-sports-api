@@ -75,7 +75,7 @@ code .
 - run the application (in development enviroment if you want to edit code inside the container)
 ```bash
 docker build -t sports-api .
-docker run --env-file .env sports-api  //or//
+docker run --env-file .env sports-api -p 8080:8080 //or//
 docler run -it --rm --env-file .env -v $(pwd):/app -w /app -p 8080:8080 sports-api bash
 ```
 ### **Set AWS environment variables**
