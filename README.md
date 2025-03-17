@@ -76,7 +76,7 @@ code .
 ```bash
 docker build -t sports-api .
 docker run --env-file .env sports-api -p 8080:8080 //or//
-docler run -it --rm --env-file .env -v $(pwd):/app -w /app -p 8080:8080 sports-api bash
+docker run -it --rm --env-file .env -v $(pwd):/app -w /app -p 8080:8080 sports-api bash
 ```
 ### **Set AWS environment variables**
 - Navigate to the accounts tab of the AWS access portal, select the Access Keys symbol link, and copy the text from **Option 1: Set AWS environment variables**
