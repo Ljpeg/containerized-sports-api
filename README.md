@@ -91,7 +91,7 @@ docler run -it --rm --env-file .env -v $(pwd):/app -w /app -p 8080:8080 sports-a
 1. Get API Gateway URL and test it
 - Get API Gatway URL by going to **AWS Console -> API Gateway -> Your API**
 - Copy the URL under **Invoke URL**
-- Make a request to your API Gateway URL
+- Make a request to your API Gateway URL (replace URL)
 ``` bash
 curl https://xyz123.execute-api.us-east-1.amazonaws.com/prod/your-route
 ```
@@ -102,7 +102,7 @@ curl https://xyz123.execute-api.us-east-1.amazonaws.com/prod/your-route
 
 2. Confirm Load Balancing works
 - Find Load Balancer DNS name in AWS Console under **EC2 -> Load Balancers**
-- call the load balancer directly
+- call the load balancer directly (replace URL)
 ``` bash
 curl http://my-load-balancer-1234567890.us-east-1.elb.amazonaws.com/your-route
 ```
@@ -114,9 +114,7 @@ Creating public APIs using API Gateway.
 Automating AWS service provisioning. 
 
 ### **Future Enhancements**
-Add caching for frequent API requests using Amazon ElastiCache
-Add DynamoDB to store user-specific queries and preferences
-Secure the API Gateway using an API key or IAM-based authentication
-Implement CI/CD for automating container deployments
+Create a more stylized front end for user interaction.
+Implement CI/CD for automating container deployments.
 
 
