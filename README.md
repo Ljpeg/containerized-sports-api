@@ -62,25 +62,22 @@ containerized-sports-api/
 - change directories into that folder
 - git clone the forked repo into the new folder/directory
 - change directories into that folder
+- set up a virtual environment
 - open in VS Code
 ```bash
 mkdir containerized-sports-api
 cd containerized-sports-api
 git clone https://github.com/Ljpeg/containerized-sports-api.git
 cd containerized-sports-api
+python3 -m venv venv
+source venv/bin/activate
 code . 
 ```
-### **Docker configurations**
-- buidl docker image and tag it
-- run the application (in development enviroment if you want to edit code inside the container)
-```bash
-docker build -t sports-api .
-docker run --env-file .env sports-api -p 8080:8080 //or//
-docker run -it --rm --env-file .env -v $(pwd):/app -w /app -p 8080:8080 sports-api bash
-```
+
+
 ### **Set AWS environment variables**
 - Navigate to the accounts tab of the AWS access portal, select the Access Keys symbol link, and copy the text from **Option 1: Set AWS environment variables**
-- Paste the copied text into bash or docker/bash terminal in VS Code.
+- Paste the copied text into terminal in VS Code.
   
 ### Run python script to provision resources
 - In the docker or bash terminal, enter `python3 script.py`  to provision the necessary resources. 
@@ -90,7 +87,7 @@ docker run -it --rm --env-file .env -v $(pwd):/app -w /app -p 8080:8080 sports-a
 ### **Test the System**
 1. Get API Gateway URL and test it
 - Get API Gatway URL by going to **AWS Console -> API Gateway -> Your API**
-- Copy the URL under **Invoke URL**
+- curl*
 - Make a request to your API Gateway URL (replace URL)
 ``` bash
 curl https://xyz123.execute-api.us-east-1.amazonaws.com/prod/your-route
